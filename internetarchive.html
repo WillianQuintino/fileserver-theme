@@ -97,4 +97,16 @@
             "PS2-part2-CHD-Arquivista",
             "PS2-part3-CHD-Arquivista",
             "gamesplaystation2",
-           
+            "retro-roms-best-set"
+        ];
+
+        // Classifica o array em ordem alfabética
+        links.sort();
+
+        // Loop através do array e chamada da função
+        for (const collectionName of links) {
+            fetchData(collectionName);
+        }
+    </script>
+</body>
+</html>
