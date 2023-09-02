@@ -1,30 +1,16 @@
 <!DOCTYPE html>
-<html dir="ltr" lang="pt">
+<html lang="pt-BR">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="color-scheme" content="light dark">
-    <meta name="google" value="notranslate">
-
+    <meta charset="UTF-8">
+    <title>Internet Archive API</title>
     <style>
-        /* Estilos CSS para a interface do Rclone */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
         table {
-            width: 100%;
             border-collapse: collapse;
-            background-color: #fff;
+            width: 100%;
         }
 
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             padding: 8px;
             text-align: left;
         }
@@ -35,85 +21,97 @@
 
         a {
             text-decoration: none;
-            color: #0074d9;
-        }
-
-        a:hover {
-            text-decoration: underline;
         }
     </style>
-
-    <title id="title">Rclone HTML</title>
 </head>
-
 <body>
+    <h1>Dados do Internet Archive</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Last modified</th>
+                <th>Size</th>
+            </tr>
+        </thead>
+        <tbody id="archiveData">
+            <!-- Os dados da API serão preenchidos aqui -->
+        </tbody>
+    </table>
 
-<h1 id="header">Lista de Arquivos - Rclone HTML</h1>
+    <script>
+        // Função para buscar dados da API com base no nome da coleção
+        async function fetchData(collectionName) {
+            try {
+                const apiUrl = `https://archive.org/metadata/${collectionName}`;
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+                const data = await response.json();
 
-<table>
-    <thead>
-    <tr class="header" id="theader">
-        <th id="nameColumnHeader" tabindex="0" role="button">Nome</th>
-        <th id="sizeColumnHeader" class="detailsColumn" tabindex="0" role="button">
-            Tamanho
-        </th>
-        <th id="dateColumnHeader" class="detailsColumn" tabindex="0" role="button">
-            Data da modificação
-        </th>
-    </tr>
-    </thead>
-    <tbody id="tbody">
-    <!-- Os dados do Rclone serão preenchidos aqui -->
-    </tbody>
-</table>
+                // Extrair os campos desejados
+                const itemSize = data.item_size;
+                const itemLastUpdated = data.item_last_updated;
+                const title = data.metadata.title;
+                const archiveLink = `https://archive.org/details/${collectionName}`;
+                const formattedDate = new Date(itemLastUpdated * 1000).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric'
+                });
 
-<script>
-    // Função para adicionar uma linha à tabela
-    function addRow(name, size, dateModified) {
-        var tbody = document.getElementById("tbody");
-        var row = document.createElement("tr");
-        var nameCell = document.createElement("td");
-        var sizeCell = document.createElement("td");
-        var dateCell = document.createElement("td");
+                // Função para formatar o tamanho com unidades de medida
+                function formatSize(size) {
+                    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                    let unitIndex = 0;
+                    while (size >= 1024 && unitIndex < units.length - 1) {
+                        size /= 1024;
+                        unitIndex++;
+                    }
+                    return size.toFixed(1) + units[unitIndex];
+                }
 
-        var link = document.createElement("a");
-        link.href = name; // O Rclone fornece links diretos para os arquivos
-        link.textContent = name;
+                // Exibir os dados na tabela
+                const archiveData = document.getElementById("archiveData");
+                const newRow = archiveData.insertRow();
+                const nameCell = newRow.insertCell(0);
+                const modificationCell = newRow.insertCell(1);
+                const sizeCell = newRow.insertCell(2);
 
-        nameCell.appendChild(link);
-        sizeCell.textContent = size;
-        dateCell.textContent = dateModified;
+                // Cria um link dentro da célula de nome
+                const nameLink = document.createElement('a');
+                nameLink.href = archiveLink;
+                nameLink.textContent = title;
+                nameCell.appendChild(nameLink);
 
-        row.appendChild(nameCell);
-        row.appendChild(sizeCell);
-        row.appendChild(dateCell);
+                modificationCell.textContent = formattedDate;
+                sizeCell.textContent = formatSize(itemSize);
+            } catch (error) {
+                console.error("Erro ao buscar dados da API:", error);
+            }
+        }
 
-        tbody.appendChild(row);
-    }
-
-    // Função para buscar dados do Rclone (substitua com sua própria lógica)
-    function fetchDataFromRclone() {
-        // Substitua este trecho com sua própria lógica para buscar dados do Rclone
-        // Você pode usar fetch() ou outra abordagem para obter a lista de arquivos do Rclone
-        // Os dados devem incluir nome, tamanho e data de modificação
-
-        // Exemplo de dados de amostra
-        var sampleData = [
-            { name: "file1.txt", size: "1.2 MB", dateModified: "2023-09-02 10:30:00" },
-            { name: "file2.jpg", size: "750 KB", dateModified: "2023-09-01 14:45:00" },
-            // Adicione mais dados conforme necessário
+        // Array de coleções em ordem alfabética
+        let links = [
+            "Snes_Roms",
+            "PS2-Arquivista",
+            "PS2-part1-CHD-Arquivista",
+            "PS2-part2-CHD-Arquivista",
+            "PS2-part3-CHD-Arquivista",
+            "gamesplaystation2",
+            "retro-roms-best-set"
         ];
 
-        // Preencha a tabela com os dados
-        for (var i = 0; i < sampleData.length; i++) {
-            var data = sampleData[i];
-            addRow(data.name, data.size, data.dateModified);
+        // Classifica o array em ordem alfabética
+        links.sort();
+
+        // Loop através do array e chamada da função
+        for (const collectionName of links) {
+            fetchData(collectionName);
         }
-    }
-
-    // Chame a função para buscar dados do Rclone
-    fetchDataFromRclone();
-</script>
-
+    </script>
 </body>
 </html>
