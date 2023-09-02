@@ -1,117 +1,128 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html dir="ltr" lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <title>Internet Archive API</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="color-scheme" content="light dark">
+    <meta name="google" value="notranslate">
+
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        a {
-            text-decoration: none;
-        }
+        /* Estilos CSS existentes aqui */
     </style>
+
+    <title id="title">Índice de Internet Archive</title>
 </head>
+
 <body>
-    <h1>Dados do Internet Archive</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Last modified</th>
-                <th>Size</th>
-            </tr>
-        </thead>
-        <tbody id="archiveData">
-            <!-- Os dados da API serão preenchidos aqui -->
-        </tbody>
-    </table>
 
-    <script>
-        // Função para buscar dados da API com base no nome da coleção
-        async function fetchData(collectionName) {
-            try {
-                const apiUrl = `https://archive.org/metadata/${collectionName}`;
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    throw new Error(`Erro na requisição: ${response.status}`);
-                }
-                const data = await response.json();
+<h1 id="header">Índice de Internet Archive</h1>
 
-                // Extrair os campos desejados
-                const itemSize = data.item_size;
-                const itemLastUpdated = data.item_last_updated;
-                const title = data.metadata.title;
-                const archiveLink = `https://archive.org/details/${collectionName}`;
-                const formattedDate = new Date(itemLastUpdated * 1000).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric'
-                });
+<div id="parentDirLinkBox" style="display: none;">
+    <a id="parentDirLink" class="icon up" href="file:///G:/Meu%20Drive/BKP/Games/Emuladores/">
+        <span id="parentDirText">[diretório pai]</span>
+    </a>
+</div>
 
-                // Função para formatar o tamanho com unidades de medida
-                function formatSize(size) {
-                    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-                    let unitIndex = 0;
-                    while (size >= 1024 && unitIndex < units.length - 1) {
-                        size /= 1024;
-                        unitIndex++;
-                    }
-                    return size.toFixed(1) + units[unitIndex];
-                }
+<table>
+    <thead>
+    <tr class="header" id="theader">
+        <th id="nameColumnHeader" tabindex="0" role="button">Nome</th>
+        <th id="sizeColumnHeader" class="detailsColumn" tabindex="0" role="button">
+            Tamanho
+        </th>
+        <th id="dateColumnHeader" class="detailsColumn" tabindex="0" role="button">
+            Data da modificação
+        </th>
+    </tr>
+    </thead>
+    <tbody id="tbody">
+    <!-- Os dados da API serão preenchidos aqui -->
+    </tbody>
+</table>
 
-                // Exibir os dados na tabela
-                const archiveData = document.getElementById("archiveData");
-                const newRow = archiveData.insertRow();
-                const nameCell = newRow.insertCell(0);
-                const modificationCell = newRow.insertCell(1);
-                const sizeCell = newRow.insertCell(2);
+<script>
+    // Função para adicionar uma linha à tabela
+    function addRow(name, size, dateModified, archiveLink) {
+        var tbody = document.getElementById("tbody");
+        var row = document.createElement("tr");
+        var nameCell = document.createElement("td");
+        var sizeCell = document.createElement("td");
+        var dateCell = document.createElement("td");
 
-                // Cria um link dentro da célula de nome
-                const nameLink = document.createElement('a');
-                nameLink.href = archiveLink;
-                nameLink.textContent = title;
-                nameCell.appendChild(nameLink);
+        var link = document.createElement("a");
+        link.href = archiveLink;
+        link.textContent = name;
 
-                modificationCell.textContent = formattedDate;
-                sizeCell.textContent = formatSize(itemSize);
-            } catch (error) {
-                console.error("Erro ao buscar dados da API:", error);
+        nameCell.appendChild(link);
+        sizeCell.textContent = size;
+        dateCell.textContent = dateModified;
+
+        row.appendChild(nameCell);
+        row.appendChild(sizeCell);
+        row.appendChild(dateCell);
+
+        tbody.appendChild(row);
+    }
+
+    // Array de coleções em ordem alfabética
+    let links = [
+        "Snes_Roms",
+        "PS2-Arquivista",
+        "PS2-part1-CHD-Arquivista",
+        "PS2-part2-CHD-Arquivista",
+        "PS2-part3-CHD-Arquivista",
+        "gamesplaystation2",
+        "retro-roms-best-set"
+    ];
+
+    // Classifica o array em ordem alfabética
+    links.sort();
+
+    // Loop através do array e chamada da função
+    for (const collectionName of links) {
+        fetchData(collectionName);
+    }
+
+    // Função para buscar dados da API com base no nome da coleção
+    async function fetchData(collectionName) {
+        try {
+            const apiUrl = `https://archive.org/metadata/${collectionName}`;
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
             }
+            const data = await response.json();
+
+            // Extrair os campos desejados
+            const itemSize = data.item_size;
+            const itemLastUpdated = data.item_last_updated;
+            const title = data.metadata.title;
+            const archiveLink = `https://archive.org/details/${collectionName}`;
+            const formattedDate = new Date(itemLastUpdated * 1000).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            });
+
+            // Função para formatar o tamanho com unidades de medida
+            function formatSize(size) {
+                const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                let unitIndex = 0;
+                while (size >= 1024 && unitIndex < units.length - 1) {
+                    size /= 1024;
+                    unitIndex++;
+                }
+                return size.toFixed(1) + units[unitIndex];
+            }
+
+            // Adicionar a linha à tabela
+            addRow(title, formatSize(itemSize), formattedDate, archiveLink);
+        } catch (error) {
+            console.error("Erro ao buscar dados da API:", error);
         }
+    }
+</script>
 
-        // Array de coleções em ordem alfabética
-        let links = [
-            "Snes_Roms",
-            "PS2-Arquivista",
-            "PS2-part1-CHD-Arquivista",
-            "PS2-part2-CHD-Arquivista",
-            "PS2-part3-CHD-Arquivista",
-            "gamesplaystation2",
-            "retro-roms-best-set"
-        ];
-
-        // Classifica o array em ordem alfabética
-        links.sort();
-
-        // Loop através do array e chamada da função
-        for (const collectionName of links) {
-            fetchData(collectionName);
-        }
-    </script>
 </body>
 </html>
